@@ -2,8 +2,11 @@
 
 %div.container
   %div{:class => "span6 offset3"}
-    %form.well#lomake{:action => ""}
-      %input{:type => "button", :value => "Hae", :class => "btn btn-primary"}
+    %select#munics
+      - @all_municipals.each do |name|
+        = name
+        %option{:value => name}= name
+    %input{ :id => 'hae_kunta', :type => 'button', :class => 'btn btn-primary', :value => 'Hae'}
   %div#infovis{:class => "span6 offset3"}
 
 

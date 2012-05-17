@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'json'
-require 'Municipal.rb'
 require 'all_data.rb'
 
 class CsvToJson
@@ -12,6 +11,7 @@ class CsvToJson
   	@votes_model = []
   	@counter = 0
   	@blacklist = {}
+  	@all_municipals = []
     if text.respond_to? "each_line"
   		text.each_line do |obj|
   			temp = {} #Municipal.new
@@ -30,7 +30,8 @@ class CsvToJson
   				temp["name"] = temp1
   				temp["id"] = temp1
   				temp["children"] = temp2
-  							
+  				
+  				@all_municipals.push temp["name"]			
   				@model[temp1] = temp
   			elsif @model[temp1] != nil
   				temp2.each do |child|
@@ -47,6 +48,10 @@ class CsvToJson
  
   def find(name)
     @model[name]
+  end
+  
+  def get_all_municipals
+    @all_municipals.sort
   end
   
   def get_all
@@ -169,6 +174,7 @@ p = CsvToJson.new(data.get_all)
 #puts "plot:"
 c = p.plot("Akaa")
 puts c.to_json(:max_nesting => 10000)
+puts p.get_all_municipals
 #if nesting error: try c.to_json(:max_nesting => 100)
 #puts "all_edges:"
 #puts p.get_all_edges.to_json

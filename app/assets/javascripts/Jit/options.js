@@ -35,9 +35,9 @@ function init(){
             }
         },
         
-        width: 700,
-        height: 500,
-        levelDistance: 150,
+        width: 560,
+        height: 400,
+        levelDistance: 80,
         fps: 40,
         //Add navigation capabilities:
         //zooming by scrolling and panning.

@@ -152,7 +152,7 @@ function init(){
     rgraph.graph.eachNode(function(node) {
 		node.eachAdjacency(function(adj) {
 			console.log(node.data)
-			adj.data.$color = color(adj.data.popularity);
+			adj.data.$color = color(node.data.popularity);
 			
 		});
 	});
