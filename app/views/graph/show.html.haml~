@@ -1,0 +1,9 @@
+%h3 HsOpen
+
+%div.container
+  %div{:class => "span6 offset3"}
+    %form.well#lomake{:action => ""}
+      %input{:type => "button", :value => "Hae", :class => "btn btn-primary"}
+  %div#infovis{:class => "span6 offset3"}
+
+

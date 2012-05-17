@@ -1,0 +1,17 @@
+%h3 HsOpen
+
+%div.container
+  %div{:class => "span6 offset3"}
+    %form.well#lomake{:action => ""}
+      %select
+      %input{:type => "button", :value => "Hae", :class => "btn btn-primary"}
+    = form_tag graph_path, :method => :post, :id => 'lomake' do
+   
+      - @all_municipals.each do |name|
+      = rating
+      = option_tag "names[#{name}]"
+      = submit_tag 'Hae', :id => 'hae_kunta', :class => btn btn-primary
+  
+  %div#infovis{:class => "span6 offset3"}
+
+
