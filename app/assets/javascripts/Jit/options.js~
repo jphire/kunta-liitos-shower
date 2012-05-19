@@ -35,9 +35,9 @@ function init(){
             }
         },
         
-        width: 700,
-        height: 500,
-        levelDistance: 150,
+        width: 560,
+        height: 400,
+        levelDistance: 130,
         fps: 40,
         //Add navigation capabilities:
         //zooming by scrolling and panning.
@@ -49,8 +49,9 @@ function init(){
         //Set Node and Edge styles.
         Node: {
             overridable: true,
+            dim: 8,
             type: 'circle',
-            color: '#ddeeff'
+            color: '#ffffff'
             
         },
         
@@ -61,52 +62,99 @@ function init(){
             lineWidth:1.2
         },
         
+        Label: {
+        	type: 'HTML',
+			overridable: true,
+        }, 
+        
         Events: {
     
             enableForEdges: true,
-            type : 'Native', //edge event doesn't work with 'HTML'
             enable: true,
-            overridable: true,
+            type : 'Native', //edge event doesn't work with 'HTML'
             
             onClick: function(node, eventInfo, e){
                 if(!node || node.nodeFrom)
                     return;
-                console.log(node);              
+                 console.log(node);     
+                 
+                $.getJSON('http://localhost:3000/graph/json/' + node.name, function(response){
+                	
+					if (!response || response.error) {
+ 		               console.log('Error occured');
+ 		            }
+ 		            else{
+		                rgraph.op.sum(response, {  
+		                    type: 'fade:seq',  
+		                    duration: 1000,  
+		                    hideLabels: false,  
+		                    transition: $jit.Trans.Quart.easeOut,
+		                    onComplete: function(){
+		                    	rgraph.graph.eachNode(function(node) {
+									node.eachAdjacency(function(adj) {
+										adj.data.$color = color(node.data.popularity);
+									});
+								});
+								rgraph.refresh();
+		                    }  	                    
+		                });
+		                
+		            }
+		            
+                });
+                             
             },
             
             onMouseEnter: function(node, eventInfo, e){
-                console.log(node);
-                if(!node || node.nodeFrom)
+                if(!node)
                     return;
-                node.data.$dim = 30;
-                rgraph.plot();
+                else if (node.nodeFrom){
+                	//node.data.$lineWidth = 5;
+                	//rgraph.refresh();
+                }
+                //node.data.$dim = 10;
+                //rgraph.plot();
                 rgraph.canvas.getElement().style.cursor = 'pointer';
             },
             
             onMouseLeave: function(node, eventInfo, e){
-                if(!node || node.nodeFrom)
+                if(!node)
                     return;
-                node.data.$dim = 20;
-                rgraph.plot();
+                else if (node.nodeFrom){
+                	//node.data.$lineWidth = 1.2;
+                	//rgraph.refresh();
+                }
+                //node.data.$dim = 10;
+                //rgraph.plot();
                 rgraph.canvas.getElement().style.cursor = '';
             }
         },
         
         Tips: {
             enable: true,
-            type: 'HTML',
+            type: 'Native',
             align: 'left',
 
             onShow: function(tip, node)
             {
                 tip.innerHTML = "";
                 if (!node) return false;
-		
-                if(node)
+				if(node.nodeFrom)
                 {
                 	tip.innerHTML = "";
-                    tip.innerHTML += '<b>' + node.name + '<br/>';
-                  	//tip.innerHTML += "<br/><img src='"+ picsource + "'/>";
+                    tip.innerHTML += "<div class='well'><b>" + node.nodeTo.name + " <--> " + node.nodeFrom.name + "</b><br/>Ääniä: " + node.nodeFrom.data.popularity + "<br/></div>";
+                    
+                    tip.innerHTML += "<div class='well'><b>" + node.nodeFrom.name + " <--> " + node.nodeTo.name + "</b><br/>Ääniä: " + node.nodeTo.data.popularity + "<br/></div>";
+                   
+                   
+				}
+                else if(node)
+                {
+                	picsource = node.name;
+                	tip.innerHTML = "";
+                    tip.innerHTML += '' + node.name + '<br/>';
+                    
+                  	tip.innerHTML += "<br/><img src='/assets/" + picsource + ".gif' width='40' height='40'/>";
                    
                 }		
             }  
@@ -118,7 +166,9 @@ function init(){
    			
    			if(!node) return false;
    			if(node){ 
+   				picsource = node.name;
     			domElement.innerHTML = node.name + "<br/>";
+    			domElement.innerHTML += "<img src='/assets/" + picsource + ".gif' width='30' height='30'/>";
             }
         },
         //Change some label dom properties.
@@ -151,7 +201,6 @@ function init(){
     
     rgraph.graph.eachNode(function(node) {
 		node.eachAdjacency(function(adj) {
-			console.log(node.data)
 			adj.data.$color = color(node.data.popularity);
 			
 		});

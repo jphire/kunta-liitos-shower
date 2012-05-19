@@ -1925,7 +1925,7 @@ var ExtrasInitializer = {
     this.nodeTypes = viz.fx.nodeTypes;
     var type = this.config.type;
     this.dom = type == 'auto'? (viz.config.Label.type != 'Native') : (type != 'Native');
-    this.labelContainer = this.dom && viz.labels.getLabelContainer();
+    this.labelContainer = viz.labels.getLabelContainer(); // removed this.dom &&
     this.isEnabled() && this.initializePost();
   },
   initializePost: $.empty,
@@ -2181,10 +2181,11 @@ Extras.Classes.Events = new Class({
   onMouseOut: function(e, win, event) {
    //mouseout a label
    var evt = $.event.get(e, win), label;
-   if(this.dom && (label = this.isLabel(e, win, true))) {
+   if((label = this.isLabel(e, win, true))) {
      this.config.onMouseLeave(this.viz.graph.getNode(label.id),
                               event, evt);
      this.hovered = false;
+     this.hoverLabel = false;
      return;
    }
    //mouseout canvas
@@ -2204,8 +2205,9 @@ Extras.Classes.Events = new Class({
   onMouseOver: function(e, win, event) {
     //mouseover a label
     var evt = $.event.get(e, win), label;
-    if(this.dom && (label = this.isLabel(e, win, true))) {
+    if((label = this.isLabel(e, win, true))) {
       this.hovered = this.viz.graph.getNode(label.id);
+      this.hoverLabel = true;
       this.config.onMouseEnter(this.hovered,
                                event, evt);
     }
@@ -2218,14 +2220,14 @@ Extras.Classes.Events = new Class({
      this.config.onDragMove(this.pressed, event, evt);
      return;
    }
-   if(this.dom) {
-     this.config.onMouseMove(this.hovered,
-         event, evt);
+//     this.config.onMouseMove(this.hovered,
+//         event, evt);
+   if(false) {
    } else {
      if(this.hovered) {
        var hn = this.hovered;
        var geom = hn.nodeFrom? this.etypes[hn.getData('type')] : this.ntypes[hn.getData('type')];
-       var contains = geom && geom.contains 
+       var contains = this.hoverLabel || geom && geom.contains
          && geom.contains.call(this.fx, hn, event.getPos());
        if(contains) {
          this.config.onMouseMove(hn, event, evt);
@@ -2249,10 +2251,8 @@ Extras.Classes.Events = new Class({
   
   onMouseDown: function(e, win, event) {
     var evt = $.event.get(e, win), label;
-    if(this.dom) {
       if(label = this.isLabel(e, win)) {
         this.pressed = this.viz.graph.getNode(label.id);
-      }
     } else {
       this.pressed = event.getNode() || (this.config.enableForEdges && event.getEdge());
     }
@@ -2261,7 +2261,7 @@ Extras.Classes.Events = new Class({
   
   onTouchStart: function(e, win, event) {
     var evt = $.event.get(e, win), label;
-    if(this.dom && (label = this.isLabel(e, win))) {
+    if((label = this.isLabel(e, win))) {
       this.touched = this.viz.graph.getNode(label.id);
     } else {
       this.touched = event.getNode() || (this.config.enableForEdges && event.getEdge());
@@ -2327,9 +2327,11 @@ Extras.Classes.Tips = new Class({
   setAsProperty: $.lambda(true),
   
   onMouseOut: function(e, win) {
+    if(!this.isEnabled()) // ADDED
+	return;
     //mouseout a label
     var evt = $.event.get(e, win);
-    if(this.dom && this.isLabel(e, win, true)) {
+    if(this.isLabel(e, win, true)) { // removed this.dom check
       this.hide(true);
       return;
     }
@@ -2343,22 +2345,28 @@ Extras.Classes.Tips = new Class({
     this.hide(false);
   },
   
-  onMouseOver: function(e, win) {
+  onMouseOver: function(e, win, event) {
+    if(!this.isEnabled()) // ADDED
+	return;
     //mouseover a label
+	var evt = $.event.get(e, win);
     var label;
-    if(this.dom && (label = this.isLabel(e, win, false))) {
+    if((label = this.isLabel(e, win, false))) { // removed this.dom check
       this.node = this.viz.graph.getNode(label.id);
       this.config.onShow(this.tip, this.node, label);
     }
   },
   
   onMouseMove: function(e, win, opt) {
-    if(this.dom && this.isLabel(e, win)) {
+    if(!this.isEnabled()) // ADDED
+	return;
+    if(this.isLabel(e, win)) { // removed this.dom check
       this.setTooltipPosition($.event.getPos(e, win));
     }
-    if(!this.dom) {
+    else { // CHANGED from !this.dom
       var node = opt.getNode();
-      if(!node) {
+      var edge = opt.getEdge();
+	  if(!node && !edge) {
         this.hide(true);
         return;
       }
@@ -2366,6 +2374,11 @@ Extras.Classes.Tips = new Class({
         this.node = node;
         this.config.onShow(this.tip, node, opt.getContains());
       }
+	  if(edge && !node){
+		this.node = edge; 
+		this.config.onShow(this.tip, edge, opt.getContains());
+	  }
+
       this.setTooltipPosition($.event.getPos(e, win));
     }
   },

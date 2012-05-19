@@ -1,12 +1,10 @@
-%h3 HsOpen
-
-%div.container
-  %div{:class => "span6 offset3"}
-    %select#munics
-      - @all_municipals.each do |name|
-        = name
-        %option{:value => name}= name
-    %input{ :id => 'hae_kunta', :type => 'button', :class => 'btn btn-primary', :value => 'Hae'}
-  %div#infovis{:class => "span6 offset3"}
+%div{:class => 'span4 offset1'}
+  %select#munics
+    - @all_municipals.each do |name|
+      = name
+      %option{:value => name}= name
+  %input{ :id => 'hae_kunta', :type => 'button', :class => 'btn btn-primary', :value => 'Hae'}
+%div.row
+  %div#infovis{ :class => 'span4' }
 
 

@@ -1,0 +1,7 @@
+.tip {
+	padding: 5px;
+	min-height: 80px;
+	min-width: 80px;
+	background-color: #ffffff;
+
+}
