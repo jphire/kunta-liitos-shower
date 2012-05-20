@@ -6,12 +6,26 @@ class CsvToJson
 
   @@depth_limit = 2 
   
-  def initialize(text)
+  def initialize(text, kunta_data)
   	@model = {}
   	@votes_model = []
   	@counter = 0
   	@blacklist = {}
   	@all_municipals = []
+	@kunnat = {}
+  	
+  	if kunta_data.respond_to? "each_line"
+  		kunta_data.each_line do |line|
+  			kunta = {}
+  			f = line.split(";")
+			kunta["pinta_ala"] = f[1]
+			kunta["taajama_aste"] = f[2]
+			kunta["asukasluku"] = f[3]
+			
+			@kunnat[f[0]] = kunta
+  		end
+  	end
+  	
     if text.respond_to? "each_line"
   		text.each_line do |obj|
   			temp = {} #Municipal.new
@@ -91,9 +105,29 @@ class CsvToJson
   	@blacklist[name] = 1
   	graph["name"] = name
   	graph["id"] = name
-  	graph["data"] = {}
-  	graph["data"]["popularity"] = 0
+  	if(graph["data"] == nil)
+  		graph["data"] = {}
+  	end
+  	if(name == "Koski_Tl")
+  		name = "Koski.Tl"
+  	end
+  	if @kunnat[name] != nil	  		
+	  	graph["data"]["asukasluku"] = @kunnat[name]["asukasluku"]
+	  	graph["data"]["pinta_ala"] = @kunnat[name]["pinta_ala"]
+	  	graph["data"]["taajama_aste"] = @kunnat[name]["taajama_aste"]
+  	end
+  	
+  	if(name == "Koski.Tl")
+  		name = "Koski_Tl"
+ 	end
+  	
   	root_children = plot_level(rootnode, 1)
+  	
+  	root_children.each do |child|
+  		graph["data"][name + "-" + child["name"]] = 0;
+  		graph["data"][name + "-" + child["name"]] = @votes[name + "-" + child["name"]]
+  	end
+  	
   	graph["children"] = root_children
   	@blacklist = {}
   	graph
@@ -102,7 +136,7 @@ class CsvToJson
   def plot_level(node, counter)
   	
   	name = node["name"]
-  	node["id"]
+  	id = node["id"]
   	
   	if counter < @@depth_limit 
   		children = node["children"]
@@ -112,9 +146,26 @@ class CsvToJson
   		  	@blacklist[child] = 1
   		  	temp_child = find(child)
   		  	if temp_child != nil
-  		  		temp_child["data"] = {}
-  		  		temp_child["data"]["popularity"]  = @votes[name + "-" + child]
   		  		temp_child["children"] = plot_level(temp_child, counter + 1)
+  		  		temp_child["data"] = {}
+  		  		#special case
+  		  		if(child == "Koski_Tl")
+  		  			child = "Koski.Tl"
+  		  		end
+  		  		puts child
+	  		  	if @kunnat[child] != nil	  		
+		  		  	temp_child["data"]["asukasluku"] = @kunnat[child]["asukasluku"]
+		  		  	temp_child["data"]["taajama_aste"] = @kunnat[child]["taajama_aste"]
+		  			temp_child["data"]["pinta_ala"] = @kunnat[child]["pinta_ala"]
+ 		 		end
+ 		 		if(child =="Koski.Tl")
+ 		 			child = "Koski_Tl"
+ 		 		end
+ 		 		temp_child["data"][name + "-" + child]  = 0
+	  	  		temp_child["data"][name + "-" + child]  = @votes[name + "-" + child]
+	  	  		temp_child["data"][child + "-" + name]  = 0
+	 	  		temp_child["data"][child + "-" + name]  = @votes[child + "-" + name]
+  		  		
   		  		child_list.push temp_child
   		  	else
   		  		temp_child = {}
@@ -122,7 +173,25 @@ class CsvToJson
   		  		temp_child["id"] = child
   		  		temp_child["children"] = []
   		  		temp_child["data"] = {}
-				temp_child["data"]["popularity"]  = 0
+  		  		#special case
+  		  		if(child == "Koski Tl")
+  		  			child = "Koski.Tl"
+  		  		end
+  		  		puts child
+  		  		if @kunnat[child] != nil	  		
+	  		  		temp_child["data"]["asukasluku"] = @kunnat[child]["asukasluku"]
+	  		  		temp_child["data"]["taajama_aste"] = @kunnat[child]["taajama_aste"]
+	  		  		temp_child["data"]["pinta_ala"] = @kunnat[child]["pinta_ala"]
+  		  		end
+  		  		
+  		  		if(child =="Koski.Tl")
+ 		 			child = "Koski Tl"
+ 		 		end
+  		  		temp_child["data"][name + "-" + child]  = 0
+  		  		temp_child["data"][name + "-" + child]  = @votes[name + "-" + child]
+  		  		temp_child["data"][child + "-" + name]  = 0
+  		  		temp_child["data"][child + "-" + name]  = @votes[child + "-" + name]
+				
   		  	end
   		  	
   		  end
@@ -153,14 +222,9 @@ class CsvToJson
   end
 end
 
-a = CsvToJson.new("Akaa;Akaa:Kangasala:Pälkäne:Valkeakoski
-Suonenjoki;Kuopio:Leppävirta:Rautalampi:Suonenjoki
-Helsinki;Espoo:Helsinki:Kauniainen:Kirkkonummi:Sipoo:Vantaa
-Ypäjä;Espoo:Ypäjä")
-
 data = CSVData.new
 
-p = CsvToJson.new(data.get_all)
+p = CsvToJson.new(data.get_all, data.get_kunta_data)
 #g = data.get_pre_formed
 #puts g
 #puts a.to_json
@@ -172,7 +236,7 @@ p = CsvToJson.new(data.get_all)
 #puts "_________________________________"
 
 #puts "plot:"
-c = p.plot("Akaa")
+c = p.plot("Vantaa")
 puts c.to_json(:max_nesting => 10000)
 puts p.get_all_municipals
 #if nesting error: try c.to_json(:max_nesting => 100)

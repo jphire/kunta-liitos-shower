@@ -6,7 +6,7 @@ class GraphController < ApplicationController
   respond_to :html, :json
   def initialize
   	@data = CSVData.new
-    @p = CsvToJson.new(@data.get_all)
+    @p = CsvToJson.new(@data.get_all, @data.get_kunta_data)
     super
   end
   

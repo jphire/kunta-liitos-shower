@@ -92,7 +92,7 @@ function init(){
 		                    onComplete: function(){
 		                    	rgraph.graph.eachNode(function(node) {
 									node.eachAdjacency(function(adj) {
-										adj.data.$color = color(node.data.popularity);
+										adj.data.$color = color(node.data[adj.nodeTo.name + '-' + adj.nodeFrom.name]);
 									});
 								});
 								rgraph.refresh();
@@ -142,9 +142,12 @@ function init(){
 				if(node.nodeFrom)
                 {
                 	tip.innerHTML = "";
-                    tip.innerHTML += "<div class='well'><b>" + node.nodeTo.name + " <--> " + node.nodeFrom.name + "</b><br/>Ääniä: " + node.nodeFrom.data.popularity + "<br/></div>";
-                    if(node.nodeTo.data.popularity > 0){
-                    tip.innerHTML += "<div class='well'><b>" + node.nodeFrom.name + " <--> " + node.nodeTo.name + "</b><br/>Ääniä: " + node.nodeTo.data.popularity + "<br/></div>";
+                    console.log(node);
+                    
+                    tip.innerHTML += "<div class='well'><b>" + node.nodeTo.name + " <--> " + node.nodeFrom.name + "</b><br/>Ääniä: " + node.nodeFrom.data[node.nodeTo.name + '-' + node.nodeFrom.name] + "<br/></div>";
+                    
+                    if(node.nodeFrom.data[node.nodeFrom.name + '-' + node.nodeTo.name] > 0){
+                    	tip.innerHTML += "<div class='well'><b>" + node.nodeFrom.name + " <--> " + node.nodeTo.name + "</b><br/>Ääniä: " + node.nodeFrom.data[node.nodeFrom.name + '-' + node.nodeTo.name] + "<br/></div>";
                     }
                    
                    
@@ -153,9 +156,13 @@ function init(){
                 {
                 	picsource = node.name;
                 	tip.innerHTML = "";
-                    tip.innerHTML += '' + node.name + '<br/>';
-                    
-                  	tip.innerHTML += "<br/><img src='/assets/" + picsource + ".gif' width='40' height='40'/>";
+                	console.log(node);
+                	tip.innerHTML += "<img src='/assets/" + picsource + ".gif' width='40' height='40'/><br/>";
+                    tip.innerHTML += '<b>' + node.name + '</b><br/>';
+                    tip.innerHTML += 'Asukasluku: ' + node.data.asukasluku + '<br/>';
+                  	tip.innerHTML += 'Pinta-ala: ' + node.data.pinta_ala + 'km²<br/>';
+                  	tip.innerHTML += 'Taajama-aste: ' + node.data.taajama_aste + '%<br/>';
+                  	
                    
                 }		
             }  
@@ -202,7 +209,7 @@ function init(){
     
     rgraph.graph.eachNode(function(node) {
 		node.eachAdjacency(function(adj) {
-			adj.data.$color = color(node.data.popularity);
+			adj.data.$color = color(node.data[adj.nodeTo.name + '-' + adj.nodeFrom.name]);
 			
 		});
 	});
